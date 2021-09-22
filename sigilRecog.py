@@ -4,44 +4,35 @@ from PIL import Image, ImageDraw
 from numpy import asarray
 import sys
 import math
+import os
 
 def points(x):
-    p = math.exp(x/255) - 1.3
+    p = math.exp(x/125) - 1.3
     #p = math.tan(x/math.pi - math.pi/2)
     return p
 
 def test():
-    dataCompare = asarray(imageCompare)
-    info = dataCompare.shape
-    score1 = 0
-    score2 = 0
-    score3 = 0
-    score4 = 0
-    d = 0
-    for i in range(info[0]):
-        for j in range(info[1]):
-            if (dataCompare[i][j][0] == 0):
-                d += 1
-                score1 += points(abs(255-meteorData[i][j][0]))
-    for i in range(info[0]):
-        for j in range(info[1]):
-            if (dataCompare[i][j][0] == 0):
-                score2 += points(abs(255-waterData[i][j][0]))
-    for i in range(info[0]):
-        for j in range(info[1]):
-            if (dataCompare[i][j][0] == 0):
-                score3 += points(abs(255-iceData[i][j][0]))
-    for i in range(info[0]):
-        for j in range(info[1]):
-            if (dataCompare[i][j][0] == 0):
-                score4 += points(abs(255-thunderData[i][j][0]))
+    scores = []
+    for keys in imagesData:
+        myScore = [keys,0]
+        dataCompare = asarray(imageCompare)
+        info = dataCompare.shape
+        
+        #Itera por los arrays de imagenes y compara pixeles
+        imageData = imagesData[keys]
+        for i in range(info[0]):
+            for j in range(info[1]):
+                #si pega con el pixel le sube puntos, de lo contrario le baja la cantidad que devuelve points()
+                if(dataCompare[i][j][0] == 0):
+                    myScore[1] += points(abs(255 - imageData[i][j][0]))
+                elif(dataCompare[i][j][0] < 25):
+                    myScore[1] -= points(abs(255 - imageData[i][j][0]))
+                    
+        scores.append(myScore)
 
-    l = [(30.0, "No se"),(score1,"Meteor"),(score2,"water"),(score3,"ice"),(score4,"thunder")] 
-    l.sort(key=lambda x:x[0], reverse=True)
-
-    
-    
-    print("--->", l[0][1], l[0][0])
+    # ordena los scores
+    scores.sort(key=lambda x:x[1], reverse=True)
+    print("--->", scores[0][0], ": ",scores[0][1])
 
 def save():
     global image_number
@@ -70,20 +61,16 @@ def paint(e):
     lastx, lasty = x, y
 
 
+images = {}
+imagesData = {}
+#Inicia programa
+for files in os.listdir("sigils"):
+    filename = os.path.splitext(files)[0]
+    #Carga imagenes
+    images[filename] = PIL.Image.open("sigils/"+files)
+    imagesData[filename] = asarray(images[filename])
 
 
-# load the image
-meteor = PIL.Image.open('sigils/1.png')
-water = PIL.Image.open('sigils/2.png')
-ice = PIL.Image.open('sigils/3.png')
-thunder = PIL.Image.open('sigils/4.png')
-
-
-# convert image to numpy array
-meteorData = asarray(meteor)
-waterData = asarray(water)
-iceData = asarray(ice)
-thunderData = asarray(thunder)
 
 root = Tk()
 root.resizable(False, False)
@@ -92,6 +79,7 @@ lastx, lasty = None, None
 image_number = 0
 
 cv = Canvas(root, width=512, height=512, bg='white')
+
 # --- PIL
 imageCompare = Image.new('RGB', (32, 32), 'white')
 draw = ImageDraw.Draw(imageCompare)
