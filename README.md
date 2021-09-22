@@ -3,10 +3,10 @@ Python Sigil Recognizer
 
 Paint sigils and the program will determine between thunder, meteor, water or ice symbols.
 
-* Importante: Para correr instalar modulos tkinter, numpy y PIL.
+* Important: Install numpy, tkinter and PIL first.
 
 
-utilizar mediante linea de comandos:
+Command line:
 
  
 ```bash
